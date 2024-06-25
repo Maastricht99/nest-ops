@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  nest-ops:
+    build: 
+      context: .
+      target: development
+    ports:
+      - 3000:3000
