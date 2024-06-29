@@ -7,6 +7,8 @@ jobs:
     deploy:
         name: Deploy App
         runs-on: ubuntu-latest
+        environment: prod
+
         steps:
             - name: Checkout Branch
               uses: actions/checkout@v3
