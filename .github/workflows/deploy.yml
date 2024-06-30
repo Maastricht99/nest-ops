@@ -42,11 +42,13 @@ jobs:
                 docker build --target production -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$IMAGE_TAG .
                 docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$IMAGE_TAG
 
-            - name: Deploy To ECS
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with: 
-                cluster: ${{ env.AWS_ECS_CLUSTER }}
-                service: ${{ env.AWS_ECS_SERVICE }}
-                wait-for-service-stability: true
+            - name: Trigger ECS Service Deployment
+              run: |
+                aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --force-new-deployment --region $AWS_REGION
+
+            - name: Deployment Completed
+              run: |
+                aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --services $AWS_ECS_SERVICE --region $AWS_REGION
+
 
 
