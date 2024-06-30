@@ -3,6 +3,16 @@ on:
     push:
         branches: 
             - main
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
+  AWS_ECS_CLUSTER: ${{ secrets.AWS_ECS_CLUSTER }}
+  AWS_ECS_SERVICE: ${{ secrets.AWS_ECS_SERVICE }}
+
+
 jobs:
     deploy:
         name: Deploy App
@@ -16,9 +26,9 @@ jobs:
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                aws-region: ${{ secrets.AWS_REGION }}
+                aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+                aws-region: ${{ env.AWS_REGION }}
 
             - name: Log Docker Into ECR
               id: login-ecr
@@ -26,28 +36,19 @@ jobs:
     
             - name: Build, Tag And Push Docker Image
               env: 
-                REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-                REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
+                AWS_ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                 IMAGE_TAG: latest
               run: |
-                docker build --target production -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-                docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+                docker build --target production -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$IMAGE_TAG .
+                docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$IMAGE_TAG
 
             - name: Trigger ECS Service Deployment
-              env: 
-                CLUSTER: ${{ secrets.AWS_ECS_CLUSTER }}
-                SERVICE: ${{ secrets.AWS_ECS_SERVICE }}
-                REGION: ${{ secrets.AWS_REGION }}
               run: |
-                aws ecs update-service --cluster $CLUSTER --service $SERVICE --force-new-deployment --region $REGION
+                aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --force-new-deployment --region $AWS_REGION
 
             - name: Deployment Completed
-              env: 
-                CLUSTER: ${{ secrets.AWS_ECS_CLUSTER }}
-                SERVICE: ${{ secrets.AWS_ECS_SERVICE }}
-                REGION: ${{ secrets.AWS_REGION }}
               run: |
-                aws ecs wait services-stable --cluster $CLUSTER --services $SERVICE --region $REGION
+                aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --services $AWS_ECS_SERVICE --region $AWS_REGION
 
 
 
