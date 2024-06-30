@@ -6,6 +6,6 @@ import { Env } from "./config";
 export class AppService {
 
   getTest(): string {
-    return "Hola Mundo";
+    return "Hello World";
   }
 }
