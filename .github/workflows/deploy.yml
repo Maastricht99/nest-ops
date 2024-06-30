@@ -37,10 +37,10 @@ jobs:
             - name: Build, Tag And Push Docker Image
               env: 
                 AWS_ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-                IMAGE_TAG: ${{ github.sha }}
+                IMAGE_TAG: latest
               run: |
                 docker build --target production -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$IMAGE_TAG .
-                docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+                docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$IMAGE_TAG
 
             - name: Trigger ECS Service Deployment
               run: |
