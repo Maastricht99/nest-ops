@@ -1,8 +1,14 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AppService {
+
+  constructor(
+    private readonly configService: ConfigService
+  ) {}
+
   getTest(): string {
-    return "Everything Works!";
+    return this.configService.get("SERVER_PORT");
   }
 }
